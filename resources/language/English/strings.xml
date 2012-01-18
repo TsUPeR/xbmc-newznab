@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+    <!-- Label -->
+    <string id="30010">General</string>
+    <string id="30011">Advanced</string>
+    <!-- Site info -->
+    <string id="30020">Site url</string>
+    <string id="30021">Site id (i)</string>
+    <string id="30022">Site key (r)</string>
+    <string id="30023">Hide category</string>
+    <!-- Advanced -->
+    <string id="30030">Rating regexp</string>
+    <string id="30031">Plot regexp</string>    
+    <string id="30032">Year regexp</string>
+    <string id="30033">Genre regexp</string>
+    <string id="30034">Directors regexp</string>
+    <string id="30035">Actors regexp</string>
+    <string id="30036">Cover regexp</string>
+</strings>

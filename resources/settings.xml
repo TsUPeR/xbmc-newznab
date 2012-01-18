@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+  <category label="30010">
+    <setting id="newznab_site" type="text" label="30020" default="nzb.su" />
+    <setting type="sep" />
+    <setting id="newznab_id" type="number" label="30021" default="" />
+    <setting id="newznab_key" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat" type="text" label="30023" default="6030|6020"/>
+  </category>
+  <category label="30011">
+    <setting id="newznab_re_rating" type="text" label="30030" default=">Rating: <.*?>(.*?)</"/>
+    <setting id="newznab_re_plot" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
+  </category>
+</settings>

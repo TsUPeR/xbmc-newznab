@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.newznab"
+       name="Newznab"
+       version="0.1.0"
+       provider-name="Popeye">
+  <requires>
+    <import addon="xbmc.python" version="1.0"/>
+    <import addon="plugin.video.nzbs" version="0.0.18"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="default.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary>Newznab</summary>
+    <description>Browse and stream from all newznab.com compatible sites</description>
+    <disclaimer>Requires the NZBS add-on and SABnzbd</disclaimer>
+  </extension>
+</addon>
