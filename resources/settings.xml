@@ -1,19 +1,83 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
   <category label="30010">
-    <setting id="newznab_site" type="text" label="30020" default="nzb.su" />
+    <setting id="newznab_name_1" type="text" label="30019" default="Nzb.su" />
     <setting type="sep" />
-    <setting id="newznab_id" type="number" label="30021" default="" />
-    <setting id="newznab_key" type="text" label="30022" default=""/>
-    <setting id="newznab_hide_cat" type="text" label="30023" default="6030|6020"/>
+    <setting id="newznab_site_1" type="text" label="30020" default="nzb.su" />
+    <setting id="newznab_id_1" type="number" label="30021" default="" />
+    <setting id="newznab_key_1" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat_1" type="text" label="30023" default="6030|6020"/>
+    <setting type="sep" />
+    <setting id="newznab_re_rating_1" type="text" label="30030" default=">Rating: <.*&quot;>(.*?)</"/>
+    <setting id="newznab_re_plot_1" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year_1" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre_1" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director_1" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors_1" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb_1" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
   </category>
   <category label="30011">
-    <setting id="newznab_re_rating" type="text" label="30030" default=">Rating: <.*?>(.*?)</"/>
-    <setting id="newznab_re_plot" type="text" label="30031" default=">Plot: (.*?)</"/>
-    <setting id="newznab_re_year" type="text" label="30032" default=">Year: (.*?)</"/>
-    <setting id="newznab_re_genre" type="text" label="30033" default=">Genre: (.*?)</"/>
-    <setting id="newznab_re_director" type="text" label="30034" default=">Director: (.*?)</"/>
-    <setting id="newznab_re_actors" type="text" label="30035" default=">Actors: (.*?)</"/>
-    <setting id="newznab_re_thumb" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
+    <setting id="newznab_name_2" type="text" label="30019" default="" />
+    <setting type="sep" />
+    <setting id="newznab_site_2" type="text" label="30020" default="" />
+    <setting id="newznab_id_2" type="number" label="30021" default="" />
+    <setting id="newznab_key_2" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat_2" type="text" label="30023" default="6030|6020"/>
+    <setting type="sep" />
+    <setting id="newznab_re_rating_2" type="text" label="30030" default=">Rating: (.*?)</"/>
+    <setting id="newznab_re_plot_2" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year_2" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre_2" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director_2" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors_2" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb_2" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
+  </category>
+  <category label="30012">
+    <setting id="newznab_name_3" type="text" label="30019" default="" />
+    <setting type="sep" />
+    <setting id="newznab_site_3" type="text" label="30020" default="" />
+    <setting id="newznab_id_3" type="number" label="30021" default="" />
+    <setting id="newznab_key_3" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat_3" type="text" label="30023" default="6030|6020"/>
+    <setting type="sep" />
+    <setting id="newznab_re_rating_3" type="text" label="30030" default=">Rating: (.*?)</"/>
+    <setting id="newznab_re_plot_3" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year_3" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre_3" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director_3" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors_3" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb_3" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
+  </category>
+  <category label="30013">
+    <setting id="newznab_name_4" type="text" label="30019" default="" />
+    <setting type="sep" />
+    <setting id="newznab_site_4" type="text" label="30020" default="" />
+    <setting id="newznab_id_4" type="number" label="30021" default="" />
+    <setting id="newznab_key_4" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat_4" type="text" label="30023" default="6030|6020"/>
+    <setting type="sep" />
+    <setting id="newznab_re_rating_4" type="text" label="30030" default=">Rating: (.*?)</"/>
+    <setting id="newznab_re_plot_4" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year_4" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre_4" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director_4" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors_4" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb_4" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
+  </category>
+  <category label="30014">
+    <setting id="newznab_name_5" type="text" label="30019" default="" />
+    <setting type="sep" />
+    <setting id="newznab_site_5" type="text" label="30020" default="" />
+    <setting id="newznab_id_5" type="number" label="30021" default="" />
+    <setting id="newznab_key_5" type="text" label="30022" default=""/>
+    <setting id="newznab_hide_cat_5" type="text" label="30023" default="6030|6020"/>
+    <setting type="sep" />
+    <setting id="newznab_re_rating_5" type="text" label="30030" default=">Rating: (.*?)</"/>
+    <setting id="newznab_re_plot_5" type="text" label="30031" default=">Plot: (.*?)</"/>
+    <setting id="newznab_re_year_5" type="text" label="30032" default=">Year: (.*?)</"/>
+    <setting id="newznab_re_genre_5" type="text" label="30033" default=">Genre: (.*?)</"/>
+    <setting id="newznab_re_director_5" type="text" label="30034" default=">Director: (.*?)</"/>
+    <setting id="newznab_re_actors_5" type="text" label="30035" default=">Actors: (.*?)</"/>
+    <setting id="newznab_re_thumb_5" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
   </category>
 </settings>

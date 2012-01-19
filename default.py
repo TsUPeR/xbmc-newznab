@@ -42,29 +42,12 @@ NS_NEWZNAB = "http://www.newznab.com/DTD/2010/feeds/attributes/"
 MODE_LIST = "list"
 MODE_DOWNLOAD = "download"
 MODE_INCOMPLETE = "incomplete"
+MODE_INDEX = "index"
 MODE_HIDE = "hide"
-           
-SITE_URL = __settings__.getSetting("newznab_site")
-SITE_CAPS = "http://" + SITE_URL + "/api?t=caps"
 
-RE_RATING = __settings__.getSetting("newznab_re_rating")
-RE_PLOT = __settings__.getSetting("newznab_re_plot")
-RE_YEAR = __settings__.getSetting("newznab_re_year")
-RE_GENRE = __settings__.getSetting("newznab_re_genre")
-RE_DIRECTOR = __settings__.getSetting("newznab_re_director")
-RE_ACTORS = __settings__.getSetting("newznab_re_actors")
-RE_THUMB = __settings__.getSetting("newznab_re_thumb").replace("SITE_URL", SITE_URL)
-
-HIDE_CAT = __settings__.getSetting("newznab_hide_cat")
-
-MODE_NZBSTREAM = "newznab"
-MODE_NZBSTREAM_SEARCH = "newznab&newznab=search"
-MODE_NZBSTREAM_MY = "newznab&newznab=mycart"
-
-NZBSTREAM_URL = ("http://" + __settings__.getSetting("newznab_site") + "/rss?dl=1&i=" + __settings__.getSetting("newznab_id") + 
-            "&r=" + __settings__.getSetting("newznab_key"))
-NZBSTREAM_URL_SEARCH = ("http://" + __settings__.getSetting("newznab_site") + "/api?dl=1&apikey=" + __settings__.getSetting("newznab_key"))
-
+MODE_NEWZNAB = "newznab"
+MODE_NEWZNAB_SEARCH = "newznab&newznab=search"
+MODE_NEWZNAB_MY = "newznab&newznab=mycart"
         
 def site_caps(url):
     doc, state = load_xml(url)
@@ -83,62 +66,73 @@ def site_caps(url):
                     table.append(row)
     return table
 
-def newznab(params):
-    if not(__settings__.getSetting("newznab_id") and __settings__.getSetting("newznab_key")):
-        __settings__.openSettings()
+def newznab(params, index):
+    newznab_url = ("http://" + __settings__.getSetting("newznab_site_%s" % index) + "/rss?dl=1&i=" +\
+                  __settings__.getSetting("newznab_id_%s" % index) + "&r=" +\
+                  __settings__.getSetting("newznab_key_%s" % index))
+    newznab_url_search = ("http://" + __settings__.getSetting("newznab_site_%s" % index) +\
+                         "/api?dl=1&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
+    hide_cat = __settings__.getSetting("newznab_hide_cat_%s" % index)
+    site_caps_url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps"
+    if params:
+        get = params.get
+        catid = get("catid")
+        newznab = get("newznab")
+        url = None
+        if newznab:
+            if newznab == "mycart":
+                url = newznab_url + "&t=-2"
+            if newznab == "search":
+                search_term = search(__settings__.getSetting("newznab_name_%s" % index), index)
+                if search_term:
+                    url = (newznab_url_search + "&t=search" + "&cat=" + catid + "&q=" 
+                    + search_term)
+        elif catid:
+            url = newznab_url + "&t=" + catid
+            key = "&catid=" + catid + "&index=" + index
+            add_posts({'title' : 'Search...',}, key, MODE_NEWZNAB_SEARCH)
+        if url:
+            list_feed_newznab(url, index)
     else:
-        if params:
-            get = params.get
-            catid = get("catid")
-            newznab = get("newznab")
-            url = None
-            if newznab:
-                if newznab == "mycart":
-                    url = NZBSTREAM_URL + "&t=-2"
-                if newznab == "search":
-                    search_term = search('SITE_URL')
-                    if search_term:
-                        url = (NZBSTREAM_URL_SEARCH + "&t=search" + "&cat=" + catid + "&q=" 
-                        + search_term)
-            elif catid:
-                url = NZBSTREAM_URL + "&t=" + catid
-                key = "&catid=" + catid
-                addPosts({'title' : 'Search...',}, key, MODE_NZBSTREAM_SEARCH)
-            if url:
-                list_feed_newznab(url)
-        else:
-            for name, catid in site_caps(SITE_CAPS):
-                if not re.search(HIDE_CAT, catid, re.IGNORECASE) or not HIDE_CAT:
-                    key = "&catid=" + str(catid)
-                    addPosts({'title' : name,}, key, MODE_NZBSTREAM)
-            addPosts({'title' : "My Cart",}, '', MODE_NZBSTREAM_MY)
-            addPosts({'title' : 'Incomplete',}, '', MODE_INCOMPLETE)
+        for name, catid in site_caps(site_caps_url):
+            if not re.search(hide_cat, catid, re.IGNORECASE) or not hide_cat:
+                key = "&catid=" + str(catid) + "&index=" + index
+                add_posts({'title' : name,}, key, MODE_NEWZNAB)
+        add_posts({'title' : "My Cart",}, '', MODE_NEWZNAB_MY)
+        add_posts({'title' : 'Incomplete',}, '', MODE_INCOMPLETE)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     return
 
-def list_feed_newznab(feedUrl):
+def list_feed_newznab(feedUrl, index):
+    re_rating = __settings__.getSetting("newznab_re_rating_%s" % index)
+    re_plot = __settings__.getSetting("newznab_re_plot_%s" % index)
+    re_year = __settings__.getSetting("newznab_re_year_%s" % index)
+    re_genre = __settings__.getSetting("newznab_re_genre_%s" % index)
+    re_director = __settings__.getSetting("newznab_re_director_%s" % index)
+    re_actors = __settings__.getSetting("newznab_re_actors_%s" % index)
+    re_thumb = __settings__.getSetting("newznab_re_thumb_%s" % index).replace("SITE_URL", __settings__.getSetting("newznab_site_%s" % index))
     doc, state = load_xml(feedUrl)
     if doc and not state:
         info_labels = dict()
         for item in doc.getElementsByTagName("item"):
             info_labels['title'] = get_node_value(item, "title")
             description = get_node_value(item, "description")
-            rating = re.search(RE_RATING, description, re.IGNORECASE|re.DOTALL)
+            rating = re.search(re_rating, description, re.IGNORECASE|re.DOTALL)
             if rating:
                 info_labels['rating'] = float(rating.group(1))
-            plot = re.search(RE_PLOT, description, re.IGNORECASE|re.DOTALL)
+            plot = re.search(re_plot, description, re.IGNORECASE|re.DOTALL)
             if plot:
                 info_labels['plot'] = plot.group(1)
-            year = re.search(RE_YEAR, description, re.IGNORECASE|re.DOTALL)
+            year = re.search(re_year, description, re.IGNORECASE|re.DOTALL)
             if year:
                 info_labels['year'] = int(year.group(1))
-            genre = re.search(RE_GENRE, description, re.IGNORECASE|re.DOTALL)
+            genre = re.search(re_genre, description, re.IGNORECASE|re.DOTALL)
             if genre:
                 info_labels['genre'] = genre.group(1)
-            director = re.search(RE_DIRECTOR, description, re.IGNORECASE|re.DOTALL)
+            director = re.search(re_director, description, re.IGNORECASE|re.DOTALL)
             if director:
                 info_labels['director'] = director.group(1)
-            actors = re.search(RE_ACTORS, description, re.IGNORECASE|re.DOTALL)
+            actors = re.search(re_actors, description, re.IGNORECASE|re.DOTALL)
             if actors:
                 info_labels['cast'] = actors.group(1).split(',')
             attribs = dict()
@@ -157,15 +151,16 @@ def list_feed_newznab(feedUrl):
             except:
                 pass
             nzb = get_node_value(item, "link")
-            thumb_re = re.search(RE_THUMB, description, re.IGNORECASE|re.DOTALL)
+            thumb_re = re.search(re_thumb, description, re.IGNORECASE|re.DOTALL)
             if thumb_re:
-                regex = re.compile(RE_THUMB,re.IGNORECASE)
+                regex = re.compile(re_thumb,re.IGNORECASE)
                 thumb = regex.findall(description)[0]
             else:
                 thumb = ""
-            nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title'].encode('utf-8'))
+            nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title'].encode('utf-8')) +\
+                  "&index=" + index
             mode = MODE_LIST
-            addPosts(info_labels, nzb, mode, thumb)
+            add_posts(info_labels, nzb, mode, thumb)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     else:
         if state == "site":
@@ -174,12 +169,12 @@ def list_feed_newznab(feedUrl):
             xbmc.executebuiltin('Notification("Newznab","Malformed result")')
     return
 
-def addPosts(info_labels, url, mode, thumb = '', folder=True):
+def add_posts(info_labels, url, mode, thumb = '', folder=True):
     listitem=xbmcgui.ListItem(info_labels['title'], iconImage="DefaultVideo.png", thumbnailImage=thumb)
     listitem.setInfo(type="Video", infoLabels=info_labels)
     fanart = thumb.replace('-cover','-backdrop')
     listitem.setProperty("Fanart_Image", fanart)
-    if mode == MODE_NZBSTREAM:
+    if mode == MODE_NEWZNAB:
         cm = []
         cm_mode = MODE_HIDE
         cm_label = "Hide"
@@ -209,16 +204,18 @@ def hide_cat(params):
     get = params.get
     catid = get("catid")
     re_cat = '(\d)000'
+    index = get("index")
+    hide_cat = __settings__.getSetting("newznab_hide_cat_%s" % index)
     if re.search(re_cat, catid, re.IGNORECASE):
         regex = re.compile(re_cat,re.IGNORECASE)
         new_cat = regex.findall(catid)[0] + "\d\d\d"
-        if HIDE_CAT:
-            new_cat = new_cat + "|" +  HIDE_CAT
+        if hide_cat:
+            new_cat = new_cat + "|" +  hide_cat
     else:
         new_cat = catid
-        if HIDE_CAT:
-            new_cat = new_cat + "|" +  HIDE_CAT
-    __settings__.setSetting("newznab_hide_cat", new_cat)
+        if hide_cat:
+            new_cat = new_cat + "|" +  hide_cat
+    __settings__.setSetting("newznab_hide_cat_%s" % index, new_cat)
     xbmc.executebuiltin("Container.Refresh")
     return
 
@@ -257,8 +254,9 @@ def load_xml(url):
         return None, "xml"
     return out, None
 
-def search(dialog_name):
-    searchString = unikeyboard(__settings__.getSetting( "latestSearch" ), ('Search ' + SITE_URL) )
+def search(dialog_name, index):
+    searchString = unikeyboard(__settings__.getSetting( "latestSearch" ), ('Search ' +\
+                   __settings__.getSetting("newznab_name_%s" % index)) )
     if searchString == "":
         xbmcgui.Dialog().ok('Newznab','Missing text')
     elif searchString:
@@ -278,18 +276,53 @@ def unikeyboard(default, message):
     else:
         return ""
 
+def import_settings():
+    try:
+        nzbsu_settings = xbmcaddon.Addon(id='plugin.video.nzbsu')
+        key = nzbsu_settings.getSetting("nzb_su_key")
+        id = nzbsu_settings.getSetting("nzb_su_id")
+        __settings__.setSetting("newznab_id_1", id)
+        __settings__.setSetting("newznab_key_1", key)
+        __settings__.setSetting("newznab_site_1", 'nzb.su')
+        __settings__.setSetting("newznab_name_1", 'Nzb.su')
+    except:
+        pass
+    return
+
+def get_index_list():
+    index_list = []
+    for i in range(1, 6):
+        if __settings__.getSetting("newznab_id_%s" % i):
+            index_list.append(i)
+    return index_list
+
+def show_site_list(index_list):
+    for index in index_list:
+        add_posts({'title': __settings__.getSetting("newznab_name_%s" % index)}, ('&index=%s' % index), MODE_INDEX)
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    return
+
 if (__name__ == "__main__" ):
-    if not (__settings__.getSetting("firstrun") and __settings__.getSetting("newznab_id")
-        and __settings__.getSetting("newznab_key")):
+    if not (__settings__.getSetting("firstrun") and __settings__.getSetting("newznab_id_1")
+        and __settings__.getSetting("newznab_key_1")):
+        import_settings()
         __settings__.openSettings()
         __settings__.setSetting("firstrun", '1')
     if (not sys.argv[2]):
-        newznab(None)
+        index_list = get_index_list()
+        if len(index_list) == 1:
+            newznab(None, '1')
+        elif len(index_list) >= 1:
+            show_site_list(index_list)
+        else:
+            __settings__.openSettings()
     else:
         params = getParameters(sys.argv[2])
         get = params.get
-        if get("mode")== MODE_NZBSTREAM:
-            newznab(params)
+        if get("mode")== MODE_INDEX:
+            newznab(None, get("index"))
+        if get("mode")== MODE_NEWZNAB:
+            newznab(params, get("index"))
         if get("mode")== MODE_HIDE:
             hide_cat(params)
 

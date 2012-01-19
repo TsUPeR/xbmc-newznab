@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
     <!-- Label -->
-    <string id="30010">General</string>
-    <string id="30011">Advanced</string>
+    <string id="30010">Site 1</string>
+    <string id="30011">Site 2</string>
+    <string id="30012">Site 3</string>
+    <string id="30013">Site 4</string>
+    <string id="30014">Site 5</string>
     <!-- Site info -->
+    <string id="30019">Display name</string>
     <string id="30020">Site url</string>
     <string id="30021">Site id (i)</string>
     <string id="30022">Site key (r)</string>
