@@ -98,7 +98,7 @@ def newznab(params, index):
             if not re.search(hide_cat, catid, re.IGNORECASE) or not hide_cat:
                 key = "&catid=" + str(catid) + "&index=" + index
                 add_posts({'title' : name,}, key, MODE_NEWZNAB)
-        add_posts({'title' : "My Cart",}, '', MODE_NEWZNAB_MY)
+        add_posts({'title' : "My Cart",}, ("&index=" + index), MODE_NEWZNAB_MY)
         add_posts({'title' : 'Incomplete',}, '', MODE_INCOMPLETE)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     return
