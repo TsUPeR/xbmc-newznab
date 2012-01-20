@@ -157,7 +157,7 @@ def list_feed_newznab(feedUrl, index):
                 thumb = regex.findall(description)[0]
             else:
                 thumb = ""
-            nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title'].encode('utf-8')) +\
+            nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title']) +\
                   "&index=" + index
             mode = MODE_LIST
             add_posts(info_labels, nzb, mode, thumb)
