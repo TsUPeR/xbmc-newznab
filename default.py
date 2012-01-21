@@ -44,6 +44,9 @@ MODE_DOWNLOAD = "download"
 MODE_INCOMPLETE = "incomplete"
 MODE_INDEX = "index"
 MODE_HIDE = "hide"
+MODE_CART = "cart"
+MODE_CART_DEL = "cart_del"
+MODE_CART_ADD = "cart_add"
 
 MODE_NEWZNAB = "newznab"
 MODE_NEWZNAB_SEARCH = "newznab&newznab=search"
@@ -159,7 +162,10 @@ def list_feed_newznab(feedUrl, index):
                 thumb = ""
             nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title']) +\
                   "&index=" + index
-            mode = MODE_LIST
+            if 't=-2' in feedUrl:
+                mode = MODE_CART
+            else:
+                mode = MODE_LIST
             add_posts(info_labels, nzb, mode, thumb)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     else:
@@ -182,7 +188,7 @@ def add_posts(info_labels, url, mode, thumb = '', folder=True):
         cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_hide)))
         listitem.addContextMenuItems(cm, replaceItems=False)
         xurl = "%s?mode=%s" % (sys.argv[0],mode)
-    if mode == MODE_LIST:
+    if mode == MODE_LIST or mode == MODE_CART:
         cm = []
         cm_mode = MODE_DOWNLOAD
         cm_label = "Download"
@@ -190,6 +196,17 @@ def add_posts(info_labels, url, mode, thumb = '', folder=True):
             folder = False
         cm_url_download = NZBS_URL + '?mode=' + cm_mode + url
         cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_download)))
+        if mode == MODE_CART:
+            cm_mode = MODE_CART_DEL
+            cm_label = "Remove from cart"
+            cm_url_cart = sys.argv[0] + '?mode=' + cm_mode + url
+            cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_cart)))
+            mode = MODE_LIST
+        else:
+            cm_mode = MODE_CART_ADD
+            cm_label = "Add to cart"
+            cm_url_cart = sys.argv[0] + '?mode=' + cm_mode + url
+            cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_cart)))
         listitem.addContextMenuItems(cm, replaceItems=False)
         xurl = "%s?mode=%s" % (NZBS_URL,mode)
     elif mode == MODE_INCOMPLETE:
@@ -217,6 +234,37 @@ def hide_cat(params):
             new_cat = new_cat + "|" +  hide_cat
     __settings__.setSetting("newznab_hide_cat_%s" % index, new_cat)
     xbmc.executebuiltin("Container.Refresh")
+    return
+
+def cart_del(params):
+    get = params.get
+    index = get("index")
+    nzb = get("nzb")
+    print nzb
+    re_id = 'nzb%2F(d*b*.*)\.nzb'
+    regex = re.compile(re_id,re.IGNORECASE)
+    id = regex.findall(nzb)[0]
+    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) +\
+          "/api?t=cartdel&apikey=" + __settings__.getSetting("newznab_key_%s" % index) +\
+          "&id=" + id
+    xbmc.executebuiltin('Notification("Newznab","Removing from cart")')
+    load_xml(url)
+    xbmc.executebuiltin("Container.Refresh")
+    return
+
+def cart_add(params):
+    get = params.get
+    index = get("index")
+    nzb = get("nzb")
+    print nzb
+    re_id = 'nzb%2F(d*b*.*)\.nzb'
+    regex = re.compile(re_id,re.IGNORECASE)
+    id = regex.findall(nzb)[0]
+    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) +\
+          "/api?t=cartadd&apikey=" + __settings__.getSetting("newznab_key_%s" % index) +\
+          "&id=" + id
+    xbmc.executebuiltin('Notification("Newznab","Adding to cart")')
+    load_xml(url)
     return
 
 # FROM plugin.video.youtube.beta  -- converts the request url passed on by xbmc to our plugin into a dict  
@@ -325,5 +373,9 @@ if (__name__ == "__main__" ):
             newznab(params, get("index"))
         if get("mode")== MODE_HIDE:
             hide_cat(params)
+        if get("mode")== MODE_CART_DEL:
+            cart_del(params)
+        if get("mode")== MODE_CART_ADD:
+            cart_add(params)
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
