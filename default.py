@@ -116,8 +116,8 @@ def list_feed_newznab(feedUrl, index):
     re_thumb = __settings__.getSetting("newznab_re_thumb_%s" % index).replace("SITE_URL", __settings__.getSetting("newznab_site_%s" % index))
     doc, state = load_xml(feedUrl)
     if doc and not state:
-        info_labels = dict()
         for item in doc.getElementsByTagName("item"):
+            info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
             description = get_node_value(item, "description")
             rating = re.search(re_rating, description, re.IGNORECASE|re.DOTALL)
