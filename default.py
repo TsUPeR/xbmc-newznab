@@ -30,9 +30,13 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from xml.dom.minidom import parse, parseString
+import os
+import pickle
 
 __settings__ = xbmcaddon.Addon(id='plugin.video.newznab')
 __language__ = __settings__.getLocalizedString
+
+USERDATA_PATH = xbmc.translatePath(__settings__.getAddonInfo("profile"))
 
 NZBS_URL = "plugin://plugin.video.nzbs"
 
@@ -47,12 +51,18 @@ MODE_HIDE = "hide"
 MODE_CART = "cart"
 MODE_CART_DEL = "cart_del"
 MODE_CART_ADD = "cart_add"
+MODE_SEARCH = "search"
+MODE_FAVORITES = "favorites"
+MODE_FAVORITES_TOP = "favorites_top"
+MODE_FAVORITE_ADD = "favorites_add"
+MODE_FAVORITE_DEL = "favorites_del"
 
 MODE_NEWZNAB = "newznab"
 MODE_NEWZNAB_SEARCH = "newznab&newznab=search"
 MODE_NEWZNAB_MY = "newznab&newznab=mycart"
         
-def site_caps(url):
+def site_caps(index):
+    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps"
     doc, state = load_xml(url)
     if doc and not state:
         table = []
@@ -76,12 +86,13 @@ def newznab(params, index):
     newznab_url_search = ("http://" + __settings__.getSetting("newznab_site_%s" % index) +\
                          "/api?dl=1&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
     hide_cat = __settings__.getSetting("newznab_hide_cat_%s" % index)
-    site_caps_url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps"
     if params:
         get = params.get
         catid = get("catid")
         newznab = get("newznab")
-        url = None
+        url = get("url")
+        if url:
+            url = urllib.unquote_plus(url)
         if newznab:
             if newznab == "mycart":
                 url = newznab_url + "&t=-2"
@@ -97,11 +108,12 @@ def newznab(params, index):
         if url:
             list_feed_newznab(url, index)
     else:
-        for name, catid in site_caps(site_caps_url):
+        for name, catid in site_caps(index):
             if not re.search(hide_cat, catid, re.IGNORECASE) or not hide_cat:
                 key = "&catid=" + str(catid) + "&index=" + index
                 add_posts({'title' : name,}, key, MODE_NEWZNAB)
         add_posts({'title' : "My Cart",}, ("&index=" + index), MODE_NEWZNAB_MY)
+        add_posts({'title' : "Search Favorites",}, ("&index=" + index), MODE_FAVORITES_TOP)
         add_posts({'title' : 'Incomplete',}, '', MODE_INCOMPLETE)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     return
@@ -116,6 +128,17 @@ def list_feed_newznab(feedUrl, index):
     re_thumb = __settings__.getSetting("newznab_re_thumb_%s" % index).replace("SITE_URL", __settings__.getSetting("newznab_site_%s" % index))
     doc, state = load_xml(feedUrl)
     if doc and not state:
+        if 't=-2' in feedUrl:
+            mode = MODE_CART
+        elif 't=search' in feedUrl:
+            mode = MODE_SEARCH
+            params = getParameters(feedUrl)
+            get = params.get
+            search_url = urllib.quote_plus(feedUrl)
+            # search_term url encoded in search(..) method
+            search_term = get('q')
+        else:
+            mode = MODE_LIST
         for item in doc.getElementsByTagName("item"):
             info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
@@ -162,10 +185,8 @@ def list_feed_newznab(feedUrl, index):
                 thumb = ""
             nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title']) +\
                   "&index=" + index
-            if 't=-2' in feedUrl:
-                mode = MODE_CART
-            else:
-                mode = MODE_LIST
+            if mode == MODE_SEARCH:
+                nzb = nzb + "&search_url=" + search_url + "&search_term=" + search_term
             add_posts(info_labels, nzb, mode, thumb)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     else:
@@ -188,7 +209,7 @@ def add_posts(info_labels, url, mode, thumb = '', folder=True):
         cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_hide)))
         listitem.addContextMenuItems(cm, replaceItems=False)
         xurl = "%s?mode=%s" % (sys.argv[0],mode)
-    if mode == MODE_LIST or mode == MODE_CART:
+    if mode == MODE_LIST or mode == MODE_CART or mode == MODE_SEARCH:
         cm = []
         cm_mode = MODE_DOWNLOAD
         cm_label = "Download"
@@ -207,8 +228,23 @@ def add_posts(info_labels, url, mode, thumb = '', folder=True):
             cm_label = "Add to cart"
             cm_url_cart = sys.argv[0] + '?mode=' + cm_mode + url
             cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_cart)))
+        if mode == MODE_SEARCH:
+            cm_mode = MODE_FAVORITE_ADD
+            cm_label = "Add to search favorites"
+            cm_url_fav = sys.argv[0] + '?mode=' + cm_mode + url
+            cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_fav)))
+            mode = MODE_LIST
         listitem.addContextMenuItems(cm, replaceItems=False)
         xurl = "%s?mode=%s" % (NZBS_URL,mode)
+    elif mode == MODE_FAVORITES:
+        cm = []
+        cm_mode = MODE_FAVORITE_DEL
+        cm_label = "Remove search favorite"
+        cm_url_fav = sys.argv[0] + '?mode=' + cm_mode + url
+        cm.append((cm_label , "XBMC.RunPlugin(%s)" % (cm_url_fav)))
+        listitem.addContextMenuItems(cm, replaceItems=False)
+        mode = MODE_NEWZNAB
+        xurl = "%s?mode=%s" % (sys.argv[0],mode)
     elif mode == MODE_INCOMPLETE:
         xurl = "%s?mode=%s" % (NZBS_URL,mode)
     else:
@@ -309,8 +345,6 @@ def search(dialog_name, index):
         xbmcgui.Dialog().ok('Newznab','Missing text')
     elif searchString:
         latestSearch = __settings__.setSetting( "latestSearch", searchString )
-        dialogProgress = xbmcgui.DialogProgress()
-        dialogProgress.create(dialog_name, 'Searching for: ' , searchString)
         #The XBMC onscreen keyboard outputs utf-8 and this need to be encoded to unicode
     encodedSearchString = urllib.quote_plus(searchString.decode("utf_8").encode("raw_unicode_escape"))
     return encodedSearchString
@@ -323,6 +357,52 @@ def unikeyboard(default, message):
         return keyboard.getText()
     else:
         return ""
+
+def favorites(index):
+    # http://wiki.python.org/moin/UsingPickle
+    favorite_filename = "favorite_" + index + ".p"
+    favorite = os.path.join(USERDATA_PATH, favorite_filename)
+    try:
+        favorite_dict = pickle.load( open( favorite, "rb" ) )
+        for key, value in favorite_dict.iteritems():
+            info_labels = dict()
+            info_labels['title'] = key
+            url = "&url=" + value + "&index=" + index
+            mode = MODE_FAVORITES
+            add_posts(info_labels, url, mode)
+        return
+    except:
+        return
+
+def favorite_add(params):
+    get = params.get
+    index = get('index')
+    search_term = get('search_term')
+    search_url = get('search_url')
+    key = ''
+    while len(key) < 1:
+        key = unikeyboard(search_term, 'Favorite name')
+    favorite_filename = "favorite_" + index + ".p"
+    favorite = os.path.join(USERDATA_PATH, favorite_filename)
+    try:
+        favorite_dict = pickle.load( open( favorite, "rb" ) )
+    except:
+        favorite_dict = dict()
+    favorite_dict[key] = search_url
+    pickle.dump( favorite_dict, open( favorite, "wb" ) )
+    return
+
+def favorite_del(params):
+    get = params.get
+    index = get('index')
+    key = xbmc.getInfoLabel( "ListItem.Title" )
+    favorite_filename = "favorite_" + index + ".p"
+    favorite = os.path.join(USERDATA_PATH, favorite_filename)
+    favorite_dict = pickle.load( open( favorite, "rb" ) )
+    del favorite_dict[key]
+    pickle.dump( favorite_dict, open( favorite, "wb" ) )
+    xbmc.executebuiltin("Container.Refresh")
+    return
 
 def import_settings():
     try:
@@ -377,5 +457,10 @@ if (__name__ == "__main__" ):
             cart_del(params)
         if get("mode")== MODE_CART_ADD:
             cart_add(params)
-
+        if get("mode")== MODE_FAVORITES_TOP:
+            favorites(get("index"))
+        if get("mode")== MODE_FAVORITE_ADD:
+            favorite_add(params)
+        if get("mode")== MODE_FAVORITE_DEL:
+            favorite_del(params)
 xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
