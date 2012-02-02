@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.newznab"
        name="Newznab"
-       version="0.1.3"
+       version="0.1.4"
        provider-name="Popeye">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
-    <import addon="plugin.video.nzbs" version="0.0.18"/>
+    <import addon="plugin.video.nzbs" version="0.0.21"/>
   </requires>
   <extension point="xbmc.python.pluginsource"
             library="default.py">
