@@ -45,7 +45,7 @@ NS_NEWZNAB = "http://www.newznab.com/DTD/2010/feeds/attributes/"
 
 MODE_LIST = "list"
 MODE_DOWNLOAD = "download"
-MODE_INCOMPLETE = "incomplete
+MODE_INCOMPLETE = "incomplete"
 
 MODE_INDEX = "index"
 MODE_HIDE = "hide"
@@ -295,10 +295,10 @@ def add_posts(info_labels, index, **kwargs):
             cm.append(cm_build("Add to cart", MODE_CART_ADD, url, index))
         if mode == MODE_SEARCH:
             cm.append(cm_build("Add to search favorites", MODE_FAVORITE_ADD, url, index))
-            mode_out = MODE_MODE_LIST
+            mode_out = MODE_LIST
         if mode == MODE_SEARCH_RAGEID:
             cm.append(cm_build("Add to search favorites", MODE_FAVORITE_ADD, url, index))
-            mode_out = MODE_MODE_LIST
+            mode_out = MODE_LIST
         if 'rageid' in info_labels:
             if mode != MODE_SEARCH_RAGEID: 
                 url_search_rage = '&rageid=' + info_labels['rageid']
