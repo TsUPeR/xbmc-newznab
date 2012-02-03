@@ -312,6 +312,8 @@ def add_posts(info_labels, index, **kwargs):
             url_search_imdb = '&imdb=' + info_labels['imdb']
             cm.append(("Search for this movie", "XBMC.Container.Update(%s?mode=%s%s&index=%s)" %\
                      (sys.argv[0], MODE_NEWZNAB_SEARCH_IMDB, url_search_imdb, index)))
+        if mode == MODE_SEARCH_IMDB:
+            mode_out = MODE_LIST
         listitem.addContextMenuItems(cm, replaceItems=True)
         xurl = "%s?mode=%s" % (NZBS_URL,mode_out)
     elif mode == MODE_FAVORITES:
