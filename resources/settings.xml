@@ -80,4 +80,7 @@
     <setting id="newznab_re_actors_5" type="text" label="30035" default=">Actors: (.*?)</"/>
     <setting id="newznab_re_thumb_5" type="text" label="30036" default="http://SITE_URL/covers/movies/\d*-cover.jpg"/>
   </category>
+  <category label="30040">
+    <setting id="cache_time" type="labelenum" label="30041" values="5|10|20|30|40|50|60" default="60"/>
+  </category>
 </settings>
