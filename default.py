@@ -67,7 +67,9 @@ MODE_NEWZNAB = "newznab"
 MODE_NEWZNAB_SEARCH = "newznab&newznab=search"
 MODE_NEWZNAB_SEARCH_RAGEID = "newznab&newznab=search_rageid"
 MODE_NEWZNAB_SEARCH_IMDB = "newznab&newznab=search_imdb"
-MODE_NEWZNAB_MY = "newznab&newznab=mycart"
+MODE_NEWZNAB_MYCART = "newznab&newznab=mycart"
+MODE_NEWZNAB_MYSHOWS = "newznab&newznab=myshows"
+MODE_NEWZNAB_MYMOVIES = "newznab&newznab=mymovies"
         
 def site_caps(index):
     url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps"
@@ -106,6 +108,10 @@ def newznab(index, params = None):
         if newznab_id:
             if newznab_id == "mycart":
                 url_out = newznab_url + "&t=-2"
+            if newznab_id == "myshows":
+                url_out = newznab_url + "&t=-3"
+            if newznab_id == "mymovies":
+                url_out = newznab_url + "&t=-4"
             if newznab_id == "search":
                 search_term = search(__settings__.getSetting("newznab_name_%s" % index), index)
                 if search_term:
@@ -132,7 +138,9 @@ def newznab(index, params = None):
                 if not re.search(hide_cat, catid, re.IGNORECASE) or not hide_cat:
                     key = "&catid=" + str(catid)
                     add_posts({'title' : name,}, index, url=key, mode=MODE_NEWZNAB)
-        add_posts({'title' : "My Cart",}, index, mode=MODE_NEWZNAB_MY)
+        add_posts({'title' : "My Cart",}, index, mode=MODE_NEWZNAB_MYCART)
+        add_posts({'title' : "My Shows",}, index, mode=MODE_NEWZNAB_MYSHOWS)
+        add_posts({'title' : "My Movies",}, index, mode=MODE_NEWZNAB_MYMOVIES)
         add_posts({'title' : "Search Favorites",}, index, mode=MODE_FAVORITES_TOP)
         add_posts({'title' : 'Incomplete',}, 0, mode=MODE_PNEUMATIC_INCOMPLETE)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
