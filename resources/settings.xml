@@ -8,7 +8,6 @@
     <setting id="newznab_key_1" type="text" label="30022" default=""/>
     <setting id="newznab_hide_cat_1" type="text" label="30023" default="6030|6020"/>
     <setting type="sep" />
-    <setting id="newznab_re_rating_1" type="text" label="30030" default=">Rating: <.*&quot;>(.*?)</"/>
     <setting id="newznab_re_plot_1" type="text" label="30031" default=">Plot: (.*?)</"/>
     <setting id="newznab_re_year_1" type="text" label="30032" default=">Year: (.*?)</"/>
     <setting id="newznab_re_genre_1" type="text" label="30033" default=">Genre: (.*?)</"/>
@@ -24,7 +23,6 @@
     <setting id="newznab_key_2" type="text" label="30022" default=""/>
     <setting id="newznab_hide_cat_2" type="text" label="30023" default="6030|6020"/>
     <setting type="sep" />
-    <setting id="newznab_re_rating_2" type="text" label="30030" default=">Rating: (.*?)</"/>
     <setting id="newznab_re_plot_2" type="text" label="30031" default=">Plot: (.*?)</"/>
     <setting id="newznab_re_year_2" type="text" label="30032" default=">Year: (.*?)</"/>
     <setting id="newznab_re_genre_2" type="text" label="30033" default=">Genre: (.*?)</"/>
@@ -40,7 +38,6 @@
     <setting id="newznab_key_3" type="text" label="30022" default=""/>
     <setting id="newznab_hide_cat_3" type="text" label="30023" default="6030|6020"/>
     <setting type="sep" />
-    <setting id="newznab_re_rating_3" type="text" label="30030" default=">Rating: (.*?)</"/>
     <setting id="newznab_re_plot_3" type="text" label="30031" default=">Plot: (.*?)</"/>
     <setting id="newznab_re_year_3" type="text" label="30032" default=">Year: (.*?)</"/>
     <setting id="newznab_re_genre_3" type="text" label="30033" default=">Genre: (.*?)</"/>
@@ -56,7 +53,6 @@
     <setting id="newznab_key_4" type="text" label="30022" default=""/>
     <setting id="newznab_hide_cat_4" type="text" label="30023" default="6030|6020"/>
     <setting type="sep" />
-    <setting id="newznab_re_rating_4" type="text" label="30030" default=">Rating: (.*?)</"/>
     <setting id="newznab_re_plot_4" type="text" label="30031" default=">Plot: (.*?)</"/>
     <setting id="newznab_re_year_4" type="text" label="30032" default=">Year: (.*?)</"/>
     <setting id="newznab_re_genre_4" type="text" label="30033" default=">Genre: (.*?)</"/>
@@ -72,7 +68,6 @@
     <setting id="newznab_key_5" type="text" label="30022" default=""/>
     <setting id="newznab_hide_cat_5" type="text" label="30023" default="6030|6020"/>
     <setting type="sep" />
-    <setting id="newznab_re_rating_5" type="text" label="30030" default=">Rating: (.*?)</"/>
     <setting id="newznab_re_plot_5" type="text" label="30031" default=">Plot: (.*?)</"/>
     <setting id="newznab_re_year_5" type="text" label="30032" default=">Year: (.*?)</"/>
     <setting id="newznab_re_genre_5" type="text" label="30033" default=">Genre: (.*?)</"/>

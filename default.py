@@ -164,7 +164,6 @@ def newznab(index, params = None):
     return
 
 def list_feed_newznab(feedUrl, index):
-    re_rating = __settings__.getSetting("newznab_re_rating_%s" % index)
     re_plot = __settings__.getSetting("newznab_re_plot_%s" % index)
     re_year = __settings__.getSetting("newznab_re_year_%s" % index)
     re_genre = __settings__.getSetting("newznab_re_genre_%s" % index)
@@ -191,17 +190,12 @@ def list_feed_newznab(feedUrl, index):
             mode = MODE_SEARCH_IMDB
         else:
             mode = MODE_PNEUMATIC_PLAY
-        # DEBUG
         items = doc.getElementsByTagName("item")
         offset = len(items)
-        # for item in doc.getElementsByTagName("item"):
         for item in items:
             info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
             description = get_node_value(item, "description")
-            rating = re.search(re_rating, description, re.IGNORECASE|re.DOTALL)
-            if rating:
-                info_labels['rating'] = float(rating.group(1))
             plot = re.search(re_plot, description, re.IGNORECASE|re.DOTALL)
             if plot:
                 info_labels['plot'] = plot.group(1)
@@ -224,6 +218,10 @@ def list_feed_newznab(feedUrl, index):
                 attribs[attr.getAttribute("name")] = attr.getAttribute("value")
             try:
                 info_labels['size'] = int(attribs['size'])
+            except:
+                pass
+            try:
+                info_labels['rating'] = float(attribs['rating'])
             except:
                 pass
             try:
