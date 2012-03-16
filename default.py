@@ -92,11 +92,11 @@ def site_caps(index):
         return None
 
 def newznab(index, params = None):
-    newznab_url = ("http://" + __settings__.getSetting("newznab_site_%s" % index) + "/rss?dl=1&i=" +\
+    newznab_url = ("http://" + __settings__.getSetting("newznab_site_%s" % index) + "/rss?dl=1&num=100&i=" +\
                   __settings__.getSetting("newznab_id_%s" % index) + "&r=" +\
                   __settings__.getSetting("newznab_key_%s" % index))
     newznab_url_search = ("http://" + __settings__.getSetting("newznab_site_%s" % index) +\
-                         "/api?dl=1&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
+                         "/api?dl=1&limit=100&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
     hide_cat = __settings__.getSetting("newznab_hide_cat_%s" % index)
     if params:
         get = params.get
@@ -105,6 +105,9 @@ def newznab(index, params = None):
         url = get("url")
         if url:
             url_out = urllib.unquote_plus(url)
+        else:
+            url_out = None
+        get_offset = get("offset")
         if newznab_id:
             if newznab_id == "mycart":
                 url_out = newznab_url + "&t=-2"
@@ -130,7 +133,20 @@ def newznab(index, params = None):
             key = "&catid=" + catid
             add_posts({'title' : 'Search...',}, index, url=key, mode=MODE_NEWZNAB_SEARCH)
         if url_out:
-            list_feed_newznab(url_out, index)
+            offset = list_feed_newznab(url_out, index)
+            if offset is not None and not '/rss?' in url_out:
+                if offset >= 100:
+                    offset_url = re.search('&offset=(\d{1,3})', url_out, re.IGNORECASE|re.DOTALL)
+                    if offset_url:
+                        offset_new = int(offset_url.group(1)) + 100
+                        next_url = re.sub(r'(&offset=)\d{1,3}', r'\g<1>%s' % str(offset_new), url_out)
+                    else:
+                        next_url = '%s&offset=100' % url_out # next_url
+                    print next_url
+                    next_url = "&url=%s" % urllib.quote_plus(next_url)
+                    add_posts({'title' : "Next..",}, index, url=next_url, mode=MODE_NEWZNAB)
+        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
     else:
         table  = site_caps(index)
         if table is not None:
@@ -175,7 +191,11 @@ def list_feed_newznab(feedUrl, index):
             mode = MODE_SEARCH_IMDB
         else:
             mode = MODE_PNEUMATIC_PLAY
-        for item in doc.getElementsByTagName("item"):
+        # DEBUG
+        items = doc.getElementsByTagName("item")
+        offset = len(items)
+        # for item in doc.getElementsByTagName("item"):
+        for item in items:
             info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
             description = get_node_value(item, "description")
@@ -273,14 +293,13 @@ def list_feed_newznab(feedUrl, index):
                 except:
                     pass
             add_posts(info_labels, index, url=nzb, mode=mode, thumb=thumb)
-        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
+        return offset
     else:
         if state == "site":
             xbmc.executebuiltin('Notification("Newznab","Site down")')
         else:
             xbmc.executebuiltin('Notification("Newznab","Malformed result")')
-    return
+    return None
 
 def add_posts(info_labels, index, **kwargs):
     url = ''
