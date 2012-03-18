@@ -72,7 +72,8 @@ MODE_NEWZNAB_MYSHOWS = "newznab&newznab=myshows"
 MODE_NEWZNAB_MYMOVIES = "newznab&newznab=mymovies"
         
 def site_caps(index):
-    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps"
+    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps" +\
+          "&apikey=" + __settings__.getSetting("newznab_key_%s" % index)
     doc, state = load_xml(url)
     if doc and not state:
         table = []
