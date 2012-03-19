@@ -160,7 +160,7 @@ def newznab(index, params = None):
         add_posts({'title' : "My Shows",}, index, mode=MODE_NEWZNAB_MYSHOWS)
         add_posts({'title' : "My Movies",}, index, mode=MODE_NEWZNAB_MYMOVIES)
         add_posts({'title' : "Search Favorites",}, index, mode=MODE_FAVORITES_TOP)
-        add_posts({'title' : 'Browse local NZB\'s'}, 0, mode=MODE_PNEUMATIC_ADD_LOCAL)
+        add_posts({'title' : 'Browse local NZB\'s'}, 0, mode=MODE_PNEUMATIC_ADD_LOCAL, folder=False)
         add_posts({'title' : 'Incomplete',}, 0, mode=MODE_PNEUMATIC_INCOMPLETE)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
         xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
