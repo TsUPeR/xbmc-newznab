@@ -48,7 +48,7 @@ NS_NEWZNAB = "http://www.newznab.com/DTD/2010/feeds/attributes/"
 MODE_PNEUMATIC_PLAY = "play"
 MODE_PNEUMATIC_DOWNLOAD = "download"
 MODE_PNEUMATIC_INCOMPLETE = "incomplete"
-MODE_PNEUMATIC_ADD_LOCAL = "add_local"
+MODE_PNEUMATIC_LOCAL = "local"
 MODE_PNEUMATIC_SAVE_STRM = "save_strm"
 
 MODE_INDEX = "index"
@@ -160,8 +160,6 @@ def newznab(index, params = None):
         add_posts({'title' : "My Shows",}, index, mode=MODE_NEWZNAB_MYSHOWS)
         add_posts({'title' : "My Movies",}, index, mode=MODE_NEWZNAB_MYMOVIES)
         add_posts({'title' : "Search Favorites",}, index, mode=MODE_FAVORITES_TOP)
-        add_posts({'title' : 'Browse local NZB\'s'}, 0, mode=MODE_PNEUMATIC_ADD_LOCAL, folder=False)
-        add_posts({'title' : 'Incomplete',}, 0, mode=MODE_PNEUMATIC_INCOMPLETE)
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
         xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
     return
@@ -369,7 +367,7 @@ def add_posts(info_labels, index, **kwargs):
         xurl = "%s?mode=%s&index=%s" % (sys.argv[0], MODE_NEWZNAB, index)
     elif mode == MODE_PNEUMATIC_INCOMPLETE:
         xurl = "%s?mode=%s" % (PNEUMATIC,mode)
-    elif mode == MODE_PNEUMATIC_ADD_LOCAL:
+    elif mode == MODE_PNEUMATIC_LOCAL:
         xurl = "%s?mode=%s" % (PNEUMATIC,mode)
     else:
         xurl = "%s?mode=%s&index=%s" % (sys.argv[0], mode, index)
@@ -541,6 +539,8 @@ def get_index_list():
 def show_site_list(index_list):
     for index in index_list:
         add_posts({'title': __settings__.getSetting("newznab_name_%s" % index)}, index, mode=MODE_INDEX)
+    add_posts({'title' : 'Browse local NZB\'s'}, 0, mode=MODE_PNEUMATIC_LOCAL)
+    add_posts({'title' : 'Incomplete',}, 0, mode=MODE_PNEUMATIC_INCOMPLETE)
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
     return
