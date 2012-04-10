@@ -516,19 +516,6 @@ def favorite_del(index):
     xbmc.executebuiltin("Container.Refresh")
     return
 
-def import_settings():
-    try:
-        nzbsu_settings = xbmcaddon.Addon(id='plugin.video.nzbsu')
-        key = nzbsu_settings.getSetting("nzb_su_key")
-        id = nzbsu_settings.getSetting("nzb_su_id")
-        __settings__.setSetting("newznab_id_1", id)
-        __settings__.setSetting("newznab_key_1", key)
-        __settings__.setSetting("newznab_site_1", 'nzb.su')
-        __settings__.setSetting("newznab_name_1", 'Nzb.su')
-    except:
-        pass
-    return
-
 def get_index_list():
     index_list = []
     for i in range(1, 6):
@@ -548,7 +535,6 @@ def show_site_list(index_list):
 if (__name__ == "__main__" ):
     if not (__settings__.getSetting("firstrun") and __settings__.getSetting("newznab_id_1")
         and __settings__.getSetting("newznab_key_1")):
-        import_settings()
         __settings__.openSettings()
         __settings__.setSetting("firstrun", '1')
     if (not sys.argv[2]):
