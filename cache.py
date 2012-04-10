@@ -34,10 +34,11 @@ class Cache:
     def __init__(self, path, seconds = 3600):
         cache_path = os.path.join(path, 'cache')
         self.seconds = seconds
-        if not os.path.exists(cache_path):
-            os.mkdir(cache_path)
-        self.path = cache_path
-        self._clear_cache()
+        if os.path.exists(path):
+            if not os.path.exists(cache_path):
+                os.mkdir(cache_path)
+            self.path = cache_path
+            self._clear_cache()
 
     def fetch(self, url_in):
         url = Url(url_in, self.path, self.seconds)
