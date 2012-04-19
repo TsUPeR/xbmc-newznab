@@ -277,6 +277,9 @@ def list_feed_newznab(feedUrl, index):
                 thumb = regex.findall(description)[0]
             else:
                 thumb = ""
+            is_hd = (False, True)[re.search("(720p|1080p)", info_labels['title'], re.IGNORECASE) is not None]
+            if is_hd:
+                info_labels['overlay'] = 8
             nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title'])
             if mode == MODE_SEARCH:
                 nzb = nzb + "&search_url=" + search_url + "&search_term=" + search_term
