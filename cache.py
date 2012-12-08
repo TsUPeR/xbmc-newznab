@@ -63,7 +63,7 @@ class Cache:
                     try:
                         out.write(doc)
                     except:
-                        e = "Failed writing " + url.cache
+                        e = "Failed writing %s" % url.cache
             else:
                 return None, e
         else:
@@ -71,7 +71,7 @@ class Cache:
                     try:
                         doc = out.read()
                     except:
-                        e = "Failed reading " + url.cache
+                        e = "Failed reading %s" % url.cache
                         return None, e
         return doc, None
 
