@@ -76,17 +76,18 @@ class Cache:
         return doc, None
 
     def _load_url(self, url):
-        req = urllib2.Request(url.real)
+        headers = { 'User-Agent' : 'Xbmc/12.0 (Addon; plugin.video.newznab)' }
+        req = urllib2.Request(url.real, None, headers)
         try:
             response = urllib2.urlopen(req)
         except urllib2.URLError, ex:
             if hasattr(ex, 'reason'):
                 print ex.reason
                 e = ex.reason
-                # e = ex.reason + " " + url.real
+                e = "%s %s" % (ex.reason, url.real)
                 return None, e
             elif hasattr(ex, 'code'):
-                e = ex.code + " " + url.real
+                e = "%s %s" % (ex.code, url.real)
                 return None, e
         else:
             doc = response.read()
