@@ -270,35 +270,6 @@ def list_feed_newznab(feedUrl, index):
                 info_labels['category'] = attribs['category']
             except:
                 pass
-            try:
-                info_labels['rageid'] = attribs['rageid']
-            except:
-                pass
-            try:
-                info_labels['tvdb-show'] = attribs['tvdb-show']
-            except:
-                pass
-            regex = re.compile("([1-9]?\d$)")
-            try:
-                info_labels['season'] = int(regex.findall(attribs['season'])[0])
-            except:
-                pass
-            try:
-                info_labels['episode'] = int(regex.findall(attribs['episode'])[0])
-            except:
-                pass
-            try:
-                info_labels['tvshowtitle'] = attribs['tvtitle']
-            except:
-                pass
-            try:
-                info_labels['aired'] = attribs['tvairdate']
-            except:
-                pass
-            try:
-                info_labels['category'] = attribs['category']
-            except:
-                pass
             nzb = get_node_value(item, "link")
             thumb_re = re.search(re_thumb, description, re.IGNORECASE|re.DOTALL)
             if thumb_re:
@@ -325,7 +296,6 @@ def list_feed_newznab(feedUrl, index):
                     pass
             add_posts(info_labels, index, url=nzb, mode=mode, thumb=thumb)
         return offset
-        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
     else:
         if state == "site":
             xbmc.executebuiltin('Notification("Newznab","Site down")')
@@ -479,7 +449,6 @@ def get_node_value(parent, name, ns=""):
 
 def load_xml(url):
     return CACHE.fetch(url)
-    # Cache the url calls
 
 def search(dialog_name, index):
     searchString = unikeyboard(__settings__.getSetting( "latestSearch" ), ('Search ' +\
