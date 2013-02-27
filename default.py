@@ -30,6 +30,8 @@ import xbmcgui
 import xbmcplugin
 import os
 import pickle
+import time
+from email.utils import parsedate
 
 import cache
 
@@ -147,8 +149,7 @@ def newznab(index, params = None):
                     print next_url
                     next_url = "&url=%s" % urllib.quote_plus(next_url)
                     add_posts({'title' : "Next..",}, index, url=next_url, mode=MODE_NEWZNAB)
-        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
+        the_end()
     else:
         table  = site_caps(index)
         if table is not None:
@@ -160,8 +161,7 @@ def newznab(index, params = None):
         add_posts({'title' : "My Shows",}, index, mode=MODE_NEWZNAB_MYSHOWS)
         add_posts({'title' : "My Movies",}, index, mode=MODE_NEWZNAB_MYMOVIES)
         add_posts({'title' : "Search Favorites",}, index, mode=MODE_FAVORITES_TOP)
-        xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
+        the_end()
     return
 
 def list_feed_newznab(feedUrl, index):
@@ -220,6 +220,10 @@ def list_feed_newznab(feedUrl, index):
             attribs = dict()
             for attr in item.getElementsByTagName("newznab:attr"):
                 attribs[attr.getAttribute("name")] = attr.getAttribute("value")
+            usenetdate = attribs.get('usenetdate', 'Fri, 13 Feb 2009 23:31:30 +0000')
+            time_tuple = parsedate(usenetdate)
+            info_labels['date'] = time.strftime("%d.%m.%Y", time_tuple)
+            info_labels['dateadded'] = time.strftime("%Y-%m-%d %H:%M:%S", time_tuple)
             try:
                 info_labels['size'] = int(attribs['size'])
             except:
@@ -486,8 +490,7 @@ def favorites(index):
         info_labels['title'] = key
         url = "&url=" + value
         add_posts(info_labels, index, url=url, mode=MODE_FAVORITES)
-    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
+    the_end()
 
 
 def favorite_add(index, params):
@@ -534,13 +537,20 @@ def show_site_list(index_list):
         add_posts({'title': __settings__.getSetting("newznab_name_%s" % index)}, index, mode=MODE_INDEX)
     add_posts({'title' : 'Browse local NZB\'s'}, 0, mode=MODE_PNEUMATIC_LOCAL)
     add_posts({'title' : 'Incomplete',}, 0, mode=MODE_PNEUMATIC_INCOMPLETE)
-    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
+    the_end()
     return
 
 def play_trailer(**kwargs):
     url = "plugin://plugin.video.youtube/?path=/root/search&feed=search&search=%s" % kwargs['trailer']
     xbmc.executebuiltin("XBMC.Container.Update(%s)" % url)
+
+def the_end():
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_FILE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_SIZE)
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
 
 if (__name__ == "__main__" ):
     if not (__settings__.getSetting("firstrun") and __settings__.getSetting("newznab_id_1")
