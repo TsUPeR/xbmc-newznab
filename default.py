@@ -196,6 +196,9 @@ def list_feed_newznab(feedUrl, index):
         for item in items:
             info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
+            trailer_name, trailer_year = xbmc.getCleanMovieTitle(info_labels['title'])
+            trailer = "%s %s" % (trailer_name, trailer_year)
+            info_labels['trailer'] = "plugin://plugin.video.newznab/?mode=trailer&trailer=%s" % urllib.quote_plus(trailer)
             description = get_node_value(item, "description")
             plot = re.search(re_plot, description, re.IGNORECASE|re.DOTALL)
             if plot:
@@ -535,6 +538,10 @@ def show_site_list(index_list):
     xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
     return
 
+def play_trailer(**kwargs):
+    url = "plugin://plugin.video.youtube/?path=/root/search&feed=search&search=%s" % kwargs['trailer']
+    xbmc.executebuiltin("XBMC.Container.Update(%s)" % url)
+
 if (__name__ == "__main__" ):
     if not (__settings__.getSetting("firstrun") and __settings__.getSetting("newznab_id_1")
         and __settings__.getSetting("newznab_key_1")):
@@ -567,3 +574,5 @@ if (__name__ == "__main__" ):
             favorite_add(get("index"), params)
         if get("mode")== MODE_FAVORITE_DEL:
             favorite_del(get("index"))
+        if get("mode")== "trailer":
+            play_trailer(**params)

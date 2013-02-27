@@ -6,6 +6,7 @@
   <requires>
     <import addon="xbmc.python" version="2.0"/>
     <import addon="plugin.program.pneumatic" version="0.2.0"/>
+    <import addon="plugin.video.youtube" version="4.4.2"/>
 </requires>
   <extension point="xbmc.python.pluginsource"
             library="default.py">
