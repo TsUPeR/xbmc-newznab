@@ -1,3 +1,7 @@
+[B]Newznab 0.2.5[/B]
+- Sort on name, size and date
+- Youtube trailer search
+
 [B]Newznab 0.2.4[/B]
 - Send User-agent
 - Fixed error handling
