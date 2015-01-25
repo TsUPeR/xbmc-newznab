@@ -23,8 +23,10 @@
  OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import sys
 import urllib
 import re
+import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
@@ -73,9 +75,15 @@ MODE_NEWZNAB_SEARCH_IMDB = "newznab&newznab=search_imdb"
 MODE_NEWZNAB_MYCART = "newznab&newznab=mycart"
 MODE_NEWZNAB_MYSHOWS = "newznab&newznab=myshows"
 MODE_NEWZNAB_MYMOVIES = "newznab&newznab=mymovies"
-        
+
+def get_http_string(index):
+    if __settings__.getSetting("newznab_https_%s" % index).lower() == "true":
+        return "https://"
+    else:
+        return "http://"
+
 def site_caps(index):
-    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) + "/api?t=caps" +\
+    url = get_http_string(index) + __settings__.getSetting("newznab_siteapi_%s" % index) + "/api?t=caps" + \
           "&apikey=" + __settings__.getSetting("newznab_key_%s" % index)
     doc, state = load_xml(url)
     if doc and not state:
@@ -96,11 +104,11 @@ def site_caps(index):
         return None
 
 def newznab(index, params = None):
-    newznab_url = ("http://" + __settings__.getSetting("newznab_site_%s" % index) + "/rss?dl=1&num=100&i=" +\
-                  __settings__.getSetting("newznab_id_%s" % index) + "&r=" +\
-                  __settings__.getSetting("newznab_key_%s" % index))
-    newznab_url_search = ("http://" + __settings__.getSetting("newznab_site_%s" % index) +\
-                         "/api?dl=1&limit=100&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
+    newznab_rss = (get_http_string(index) + __settings__.getSetting("newznab_siterss_%s" % index) +
+                   "/rss?dl=1&num=100&i=" + __settings__.getSetting("newznab_id_%s" % index) + "&r=" +
+                   __settings__.getSetting("newznab_key_%s" % index))
+    newznab_search_api = (get_http_string(index) + __settings__.getSetting("newznab_siteapi_%s" % index) +
+                          "/api?dl=1&limit=100&extended=1&apikey=" + __settings__.getSetting("newznab_key_%s" % index))
     hide_cat = __settings__.getSetting("newznab_hide_cat_%s" % index)
     if params:
         get = params.get
@@ -114,48 +122,48 @@ def newznab(index, params = None):
         get_offset = get("offset")
         if newznab_id:
             if newznab_id == "mycart":
-                url_out = newznab_url + "&t=-2"
+                url_out = newznab_rss + "&t=-2"
             if newznab_id == "myshows":
-                url_out = newznab_url + "&t=-3"
+                url_out = newznab_rss + "&t=-3"
             if newznab_id == "mymovies":
-                url_out = newznab_url + "&t=-4"
+                url_out = newznab_rss + "&t=-4"
             if newznab_id == "search":
                 search_term = search(__settings__.getSetting("newznab_name_%s" % index), index)
                 if search_term:
-                    url_out = (newznab_url_search + "&t=search" + "&cat=" + catid + "&q=" 
+                    url_out = (newznab_search_api + "&t=search" + "&cat=" + catid + "&q="
                     + search_term + "&extended=1")
             if newznab_id == "search_rageid":
                 rageid = get('rageid')
-                url_out = (newznab_url_search + "&t=tvsearch" + "&rid=" + rageid + "&extended=1")
+                url_out = (newznab_search_api + "&t=tvsearch" + "&rid=" + rageid + "&extended=1")
                 if catid:
                     url_out = url_out + "&cat=" + catid
             if newznab_id == "search_imdb":
                 imdb = get('imdb')
-                url_out = (newznab_url_search + "&t=movie" + "&imdbid=" + imdb + "&extended=1")
+                url_out = (newznab_search_api + "&t=movie" + "&imdbid=" + imdb + "&extended=1")
         elif catid:
-            url_out = newznab_url + "&t=" + catid
+            url_out = "%s&t=search&cat=%s" % (newznab_search_api, catid)
+            #
             key = "&catid=" + catid
             add_posts({'title' : 'Search...',}, index, url=key, mode=MODE_NEWZNAB_SEARCH)
         if url_out:
             offset = list_feed_newznab(url_out, index)
             if offset is not None and not '/rss?' in url_out:
                 if offset >= 100:
-                    offset_url = re.search('&offset=(\d{1,3})', url_out, re.IGNORECASE|re.DOTALL)
+                    offset_url = re.search(r'&offset=(\d{1,3})', url_out, re.IGNORECASE|re.DOTALL)
                     if offset_url:
                         offset_new = int(offset_url.group(1)) + 100
                         next_url = re.sub(r'(&offset=)\d{1,3}', r'\g<1>%s' % str(offset_new), url_out)
                     else:
-                        next_url = '%s&offset=100' % url_out # next_url
-                    print next_url
+                        next_url = '%s&offset=100' % url_out
                     next_url = "&url=%s" % urllib.quote_plus(next_url)
                     add_posts({'title' : "Next..",}, index, url=next_url, mode=MODE_NEWZNAB)
-        the_end()
+        the_end(catid)
     else:
-        table  = site_caps(index)
+        table = site_caps(index)
         if table is not None:
-            for name, catid in site_caps(index):
-                if not re.search(hide_cat, catid, re.IGNORECASE) or not hide_cat:
-                    key = "&catid=" + str(catid)
+            for name, m_catid in table:
+                if not re.search(hide_cat, m_catid, re.IGNORECASE) or not hide_cat:
+                    key = "&catid=" + str(m_catid)
                     add_posts({'title' : name,}, index, url=key, mode=MODE_NEWZNAB)
         add_posts({'title' : "My Cart",}, index, mode=MODE_NEWZNAB_MYCART)
         add_posts({'title' : "My Shows",}, index, mode=MODE_NEWZNAB_MYSHOWS)
@@ -165,27 +173,19 @@ def newznab(index, params = None):
     return
 
 def list_feed_newznab(feedUrl, index):
-    re_plot = __settings__.getSetting("newznab_re_plot_%s" % index)
-    re_year = __settings__.getSetting("newznab_re_year_%s" % index)
-    re_genre = __settings__.getSetting("newznab_re_genre_%s" % index)
-    re_director = __settings__.getSetting("newznab_re_director_%s" % index)
-    re_actors = __settings__.getSetting("newznab_re_actors_%s" % index)
-    re_thumb = __settings__.getSetting("newznab_re_thumb_%s" % index).replace("SITE_URL", __settings__.getSetting("newznab_site_%s" % index))
     doc, state = load_xml(feedUrl)
     if doc and not state:
+        url_params = get_parameters(feedUrl)
+        t = url_params.get('t', None)
+        q = url_params.get('q', None)
         if 't=-2' in feedUrl:
             mode = MODE_CART
-        elif 't=search' in feedUrl:
+        elif t == 'search' and q is not None:
             mode = MODE_SEARCH
-            params = get_parameters(feedUrl)
-            get = params.get
             search_url = urllib.quote_plus(feedUrl)
-            # search_term url encoded in search(..) method
-            search_term = get('q')
+            search_term = q
         elif 't=tvsearch' in feedUrl:
             mode = MODE_SEARCH_RAGEID
-            params = get_parameters(feedUrl)
-            get = params.get
             search_url = urllib.quote_plus(feedUrl)
         elif 't=movie' in feedUrl:
             mode = MODE_SEARCH_IMDB
@@ -196,27 +196,9 @@ def list_feed_newznab(feedUrl, index):
         for item in items:
             info_labels = dict()
             info_labels['title'] = get_node_value(item, "title")
-            trailer_name, trailer_year = xbmc.getCleanMovieTitle(info_labels['title'])
-            trailer = "%s %s" % (trailer_name, trailer_year)
-            info_labels['trailer'] = "plugin://plugin.video.newznab/?mode=trailer&trailer=%s" % urllib.quote_plus(trailer)
-            description = get_node_value(item, "description")
-            plot = re.search(re_plot, description, re.IGNORECASE|re.DOTALL)
-            if plot:
-                info_labels['plot'] = plot.group(1)
-            else:
-                info_labels['plot'] = ''
-            year = re.search(re_year, description, re.IGNORECASE|re.DOTALL)
-            if year:
-                info_labels['year'] = int(year.group(1))
-            genre = re.search(re_genre, description, re.IGNORECASE|re.DOTALL)
-            if genre:
-                info_labels['genre'] = genre.group(1)
-            director = re.search(re_director, description, re.IGNORECASE|re.DOTALL)
-            if director:
-                info_labels['director'] = director.group(1)
-            actors = re.search(re_actors, description, re.IGNORECASE|re.DOTALL)
-            if actors:
-                info_labels['cast'] = actors.group(1).split(',')
+            #trailer_name, trailer_year = xbmc.getCleanMovieTitle(info_labels['title'])
+            #trailer = "%s %s" % (trailer_name, trailer_year)
+            #info_labels['trailer'] = "plugin://plugin.video.newznab/?mode=trailer&trailer=%s" % urllib.quote_plus(trailer)
             attribs = dict()
             for attr in item.getElementsByTagName("newznab:attr"):
                 attribs[attr.getAttribute("name")] = attr.getAttribute("value")
@@ -224,37 +206,32 @@ def list_feed_newznab(feedUrl, index):
             time_tuple = parsedate(usenetdate)
             info_labels['date'] = time.strftime("%d.%m.%Y", time_tuple)
             info_labels['dateadded'] = time.strftime("%Y-%m-%d %H:%M:%S", time_tuple)
-            try:
-                info_labels['size'] = int(attribs['size'])
-            except:
-                pass
-            try:
-                info_labels['rating'] = float(attribs['rating'])
-            except:
-                pass
-            try:
-                info_labels['imdb'] = attribs['imdb']
-            except:
-                pass
-            else:
-                info_labels['code'] = 'tt' + info_labels['imdb']
+            info_labels['videocodec'] = attribs.get('video', "")
+            resolution = attribs.get('resolution', "0x0 0:0")
+            RE_RESOLUTION = r'(\d+)x(\d+) (.+:.+)'
+            res_res = re.search(RE_RESOLUTION, resolution)
+            info_labels['videoresolutionwidth'] = res_res.group(1)
+            info_labels['videoresolutionheight'] = res_res.group(2)
+            info_labels['videoaspect'] = res_res.group(3)
+            info_labels['size'] = int(attribs.get('size', 0))
+            info_labels['rating'] = float(attribs.get('imdbscore', 0))
+            info_labels['originaltitle'] = attribs.get('imdbtitle', info_labels['title'])
+            info_labels['tagline'] = attribs.get('imdbtagline', "")
+            info_labels['plot'] = attribs.get('imdbplot', "")
+            info_labels['year'] = attribs.get('imdbyear', "")
+            info_labels['director'] = attribs.get('imdbdirector', "").replace("|", ", ")
+            info_labels['cast'] = list(tuple((attribs.get('imdbactors', "").replace("|", ", ").split(","))))
+            info_labels['genre'] = attribs.get('genre', "").replace("|", ", ")
+            info_labels['code'] = attribs.get('imdb', None)
+            if info_labels['code'] is not None:
+                info_labels['code'] = "tt%s" % info_labels['code']
                 # Append imdb id to the plot. Picked up by plugin.program.pneumatic
-                text = info_labels['plot'] + " imdb:" + str(info_labels['code'])
+                text = "%s imdb:%s" % (info_labels['plot'], info_labels['code'])
                 info_labels['plot'] = text
-            try:
-                info_labels['rageid'] = attribs['rageid']
-            except:
-                pass
-            else:
+            info_labels['rageid'] = attribs.get('rageid', None)
+            if info_labels['rageid'] is not None:
                 # Append rageid to the plot. Picked up by plugin.program.pneumatic
-                text = info_labels['plot'] + " rage:" + str(info_labels['rageid'])
-                info_labels['plot'] = text
-            try:
-                info_labels['tvdb-show'] = attribs['tvdb-show']
-            except:
-                pass
-            else:
-                text = info_labels['plot'] + " tvdb:" + str(info_labels['tvdb-show'])
+                text = "%s rage:%s" % (info_labels['plot'], info_labels['rageid'])
                 info_labels['plot'] = text
             regex = re.compile("([1-9]?\d$)")
             try:
@@ -269,24 +246,23 @@ def list_feed_newznab(feedUrl, index):
                 info_labels['tvshowtitle'] = attribs['tvtitle']
             except:
                 pass
-            try:
-                info_labels['aired'] = attribs['tvairdate']
-            except:
-                pass
+            aired = attribs.get('tvairdate', None)
+            if aired is not None:
+                time_tuple = parsedate(aired)
+                info_labels['aired'] = time.strftime("%Y-%m-%d", time_tuple)
             try:
                 info_labels['category'] = attribs['category']
             except:
                 pass
             nzb = get_node_value(item, "link")
-            thumb_re = re.search(re_thumb, description, re.IGNORECASE|re.DOTALL)
-            if thumb_re:
-                regex = re.compile(re_thumb,re.IGNORECASE)
-                thumb = regex.findall(description)[0]
-            else:
-                thumb = ""
+            thumb = attribs.get('coverurl', "")
+            info_labels['backdropcoverurl'] = attribs.get('backdropcoverurl', "")
             is_hd = (False, True)[re.search("(720p|1080p)", info_labels['title'], re.IGNORECASE) is not None]
             if is_hd:
                 info_labels['overlay'] = 8
+                info_labels['videoresolutionheight'] = "720"
+                info_labels['videoaspectratio'] = "16:9"
+                info_labels['videocodec'] = "x264"
             nzb = "&nzb=" + urllib.quote_plus(nzb) + "&nzbname=" + urllib.quote_plus(info_labels['title'])
             if mode == MODE_SEARCH:
                 nzb = nzb + "&search_url=" + search_url + "&search_term=" + search_term
@@ -294,7 +270,7 @@ def list_feed_newznab(feedUrl, index):
                 nzb = nzb + "&search_url=" + search_url
             # Clear empty keys
             for key in info_labels.keys():
-                if(info_labels[key] == -1):
+                if(info_labels[key] == -1) or info_labels[key] is None:
                     del info_labels[key]
                 try:
                     if (len(info_labels[key])<1):
@@ -324,13 +300,19 @@ def add_posts(info_labels, index, **kwargs):
     if 'folder' in kwargs:
         folder = kwargs['folder']
     listitem=xbmcgui.ListItem(info_labels['title'], iconImage="DefaultVideo.png", thumbnailImage=thumb)
-    fanart = thumb.replace('-cover','-backdrop')   
+    fanart = info_labels.get('backdropcoverurl', "") #thumb.replace('-cover','-backdrop')
     listitem.setProperty("Fanart_Image", fanart)
+    ###
+    # if 'videoresolution' in info_labels:
+    #    listitem.addStreamInfo('video', {'codec': info_labels['videocodec'],
+    #                                     'height': info_labels['videoresolution'],
+    #                                     'aspect': info_labels['videoaspectratio']})
+    #    listitem.addStreamInfo('audio', {'channels': 7, 'codec' : 'dts'})
+    ###
     if mode == MODE_NEWZNAB:
         cm = []
         cm.append(cm_build("Hide", MODE_HIDE, url, index))
         listitem.addContextMenuItems(cm, replaceItems=True)
-        xurl = "%s?mode=%s&index=%s" % (sys.argv[0], MODE_NEWZNAB, index)
     if mode == MODE_PNEUMATIC_PLAY or mode == MODE_CART or mode == MODE_SEARCH or\
        mode == MODE_SEARCH_RAGEID or mode == MODE_SEARCH_IMDB:
         mode_out = mode
@@ -354,7 +336,7 @@ def add_posts(info_labels, index, **kwargs):
             cm.append(cm_build("Add to search favorites", MODE_FAVORITE_ADD, url, index))
             mode_out = MODE_PNEUMATIC_PLAY
         if 'rageid' in info_labels:
-            if mode != MODE_SEARCH_RAGEID: 
+            if mode != MODE_SEARCH_RAGEID:
                 url_search_rage = '&rageid=' + info_labels['rageid']
                 cm.append(("Search for this show", "XBMC.Container.Update(%s?mode=%s%s&index=%s)" %\
                           (sys.argv[0], MODE_NEWZNAB_SEARCH_RAGEID, url_search_rage, index)))
@@ -362,7 +344,7 @@ def add_posts(info_labels, index, **kwargs):
                 url_search_rage = '&rageid=' + info_labels['rageid'] + "&catid=" + info_labels['category']
                 cm.append(("Search for this quality", "XBMC.Container.Update(%s?mode=%s%s&index=%s)" %\
                           (sys.argv[0], MODE_NEWZNAB_SEARCH_RAGEID, url_search_rage, index)))
-        if 'imdb' in info_labels: 
+        if 'imdb' in info_labels:
             url_search_imdb = '&imdb=' + info_labels['imdb']
             cm.append(("Search for this movie", "XBMC.Container.Update(%s?mode=%s%s&index=%s)" %\
                      (sys.argv[0], MODE_NEWZNAB_SEARCH_IMDB, url_search_imdb, index)))
@@ -415,7 +397,7 @@ def cart_del(index, params):
     re_id = 'nzb%2F(d*b*.*)\.nzb'
     regex = re.compile(re_id,re.IGNORECASE)
     id = regex.findall(nzb)[0]
-    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) +\
+    url = get_http_string(index) + __settings__.getSetting("newznab_siteapi_%s" % index) +\
           "/api?t=cartdel&apikey=" + __settings__.getSetting("newznab_key_%s" % index) +\
           "&id=" + id
     xbmc.executebuiltin('Notification("Newznab","Removing from cart")')
@@ -429,18 +411,18 @@ def cart_add(index, params):
     re_id = 'nzb%2F(d*b*.*)\.nzb'
     regex = re.compile(re_id,re.IGNORECASE)
     id = regex.findall(nzb)[0]
-    url = "http://" + __settings__.getSetting("newznab_site_%s" % index) +\
+    url = get_http_string(index) + __settings__.getSetting("newznab_siteapi_%s" % index) +\
           "/api?t=cartadd&apikey=" + __settings__.getSetting("newznab_key_%s" % index) +\
           "&id=" + id
     xbmc.executebuiltin('Notification("Newznab","Adding to cart")')
     load_xml(url)
     return
 
-# FROM plugin.video.youtube.beta  -- converts the request url passed on by xbmc to our plugin into a dict  
+# FROM plugin.video.youtube.beta  -- converts the request url passed on by xbmc to our plugin into a dict
 def get_parameters(parameterString):
     commands = {}
     splitCommands = parameterString[parameterString.find('?')+1:].split('&')
-    for command in splitCommands: 
+    for command in splitCommands:
         if (len(command) > 0):
             splitCommand = command.split('=')
             name = splitCommand[0]
@@ -455,6 +437,7 @@ def get_node_value(parent, name, ns=""):
         return parent.getElementsByTagName(name)[0].childNodes[0].data.encode('utf-8')
 
 def load_xml(url):
+    #TODO add logging
     return CACHE.fetch(url)
 
 def search(dialog_name, index):
@@ -468,7 +451,7 @@ def search(dialog_name, index):
     encodedSearchString = urllib.quote_plus(searchString.decode("utf_8").encode("raw_unicode_escape"))
     return encodedSearchString
 
-#From old undertexter.se plugin    
+#From old undertexter.se plugin
 def unikeyboard(default, message):
     keyboard = xbmc.Keyboard(default, message)
     keyboard.doModal()
@@ -542,14 +525,33 @@ def show_site_list(index_list):
 
 def play_trailer(**kwargs):
     url = "plugin://plugin.video.youtube/?path=/root/search&feed=search&search=%s" % kwargs['trailer']
-    xbmc.executebuiltin("XBMC.Container.Update(%s)" % url)
+    try:
+        xbmc.executebuiltin("XBMC.Container.Update(%s)" % url)
+    except:
+        pass
 
-def the_end():
-    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+def the_end(catid = "1000"):
+    # cat_id 5000 => episodes
+    # cat_id 2000 => movies
+    # cat_id 6000 => movies (xxx)
+    # cat_id 3000 => albums
+    # cat_id x => files
+    # content: files, songs, artists, albums, movies, tvshows, episodes, musicvideos
+    xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_FILE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_SIZE)
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
+    if catid is not None:
+        if catid.startswith("2"):
+            xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+        if catid.startswith("3"):
+            xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+        if catid.startswith("5"):
+            xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+            xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_EPISODE)
+    else:
+        xbmcplugin.setContent(int(sys.argv[1]), 'files')
     xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=True)
 
 if (__name__ == "__main__" ):
