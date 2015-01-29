@@ -1,3 +1,9 @@
+[B]Newznab 0.3.0[/B]
+- Pure Newznab API, no more parsing of rss feed html data for media meta data.
+- Https support.
+- Sites with different url's for rss and api are now supported.
+- Youtube trailer search disabled
+
 [B]Newznab 0.2.5[/B]
 - Sort on name, size and date
 - Youtube trailer search
